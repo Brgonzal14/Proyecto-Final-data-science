@@ -1,136 +1,136 @@
+
+
 # SICOP – Cotizador inteligente de propiedades
 
-Proyecto de Data Science para estimar el precio de departamentos y casas,
-mostrar propiedades similares y segmentar el mercado inmobiliario.
+### *Versión Dockerizable (no requiere instalar Python)*
 
-- **Backend:** FastAPI (Python)
-- **Frontend:** HTML + Bootstrap + JS
-- **Modelo:** `models/modelo_inmobiliario.joblib`
-- **Datos:** `data/inmobiliario_limpio_v6_con_links.xlsx` + `data/segmento_por_comuna.xlsx`
+Proyecto de Data Science para estimar el precio de propiedades, mostrar similares y segmentar el mercado inmobiliario usando:
+
+* **Backend:** FastAPI (Python)
+* **Frontend:** HTML + Bootstrap + JS
+* **Contenedores:** Docker + Docker Compose
+
 
 ---
 
 ## 1. Requisitos
 
-- Python 3.9 o superior
-- `pip` instalado
-
-Librerías principales:
-
-```bash
-pip install fastapi uvicorn pandas joblib scikit-learn openpyxl
-````
-
-O usar `pip install -r requirements.txt` 
-
----
+* **Docker Desktop** instalado
 
 ## 2. Estructura del proyecto
 
 ```text
 .
-├── app
-│   └── main.py              # API FastAPI
-├── data
+├── app/
+│   └── main.py                 # API FastAPI
+├── data/
 │   ├── inmobiliario_limpio_v6_con_links.xlsx
 │   └── segmento_por_comuna.xlsx
-├── models
+├── models/
 │   └── modelo_inmobiliario.joblib
-│   └── segmento_por_comuna.xlsx
-├── frontend
-│    ├── index.html           # Frontend
-│    ├── main.js
-│    └── styles.css 
-├── requirements.txt
+├── frontend/
+│   ├── index.html              # Frontend
+│   ├── main.js
+│   └── styles.css
+├── Dockerfile                  # Backend
+├── docker-compose.yml          # Backend + Frontend
+└── requirements.txt
 ```
-
-> Importante: las rutas de `main.py` asumen que `data/` y `models/` están
-> en la carpeta raíz del proyecto.
 
 ---
 
-## 3. Levantar la API (backend)
+## 3. Levantar todo con Docker
 
-Desde la raíz del proyecto:
+Desde la **raíz del proyecto** ejecutar:
 
 ```bash
-uvicorn app.main:app --reload --port 8000
+docker compose up --build
 ```
 
-Si todo está bien, deberías ver algo como:
+Docker hará:
 
-* `Application startup complete.`
-* API disponible en: `http://127.0.0.1:8000`
+* Construir la imagen del **backend** (FastAPI + modelo + datos)
+* Levantar un contenedor de **frontend** (Nginx sirviendo la web)
+* Crear la red interna entre ambos contenedores
 
-Endpoints principales:
+Si todo está bien, verás:
 
-* `GET /health` → estado de la API
-* `POST /predict` → precio estimado
-* `POST /similar` → propiedades similares
-* `POST /segmento` → segmentos de mercado
+```
+Application startup complete.
+Uvicorn running on http://0.0.0.0:8000
+nginx/1.x.x ... ready for start up
+```
 
-Ejemplo de payload (JSON):
+---
+
+## 4. Acceder al sistema
+
+### **Frontend:**
+
+Abrir en el navegador:
+
+```
+http://localhost:5500
+```
+
+### **Backend / API:**
+
+Probar salud del servidor:
+
+```
+http://localhost:8000/health
+```
+
+Debe responder:
 
 ```json
-{
-  "sup_total": 75,
-  "sup_construida": 70,
-  "dormitorios": 2,
-  "banos": 2,
-  "estacionamientos": 1,
-  "antiguedad": 10,
-  "comuna": "Maipú",
-  "bodegas": 0,
-  "pisos": 1,
-  "terraza": true,
-  "piscina": false,
-  "aire_acondicionado": false,
-  "closets_empotrados": true
-}
+{"status": "ok"}
 ```
 
 ---
 
-## 4. Levantar el frontend
+## 5. Cómo usar la aplicación
 
-Desde la carpeta `frontend/`:
+1. Abrir **[http://localhost:5500](http://localhost:5500)**
+2. Ingresar los datos de la propiedad
+3. Presionar **“Calcular”**
+4. La aplicación mostrará:
+
+* Precio estimado en UF
+* Segmento global (K-Means, mercado completo)
+* Segmento por comuna (ranking de comunas)
+* Tabla de propiedades similares con links a la publicación original
+
+Todo funcionando desde Docker, sin dependencias adicionales.
+
+---
+
+## 6. Detener los contenedores
+
+Ejecuta:
 
 ```bash
-cd static
-python -m http.server 5500
+docker compose down
 ```
 
-Luego abrir en el navegador:
-
-```text
-http://127.0.0.1:5500/index.html
-```
-
-El frontend llama a la API en `http://127.0.0.1:8000`, así que:
-
-* **Backend** debe estar corriendo en el puerto 8000.
-* **Frontend** se sirve desde el puerto 5500 (o el que uses).
+Esto apaga el backend y el frontend.
 
 ---
 
-## 5. Cómo usarlo
+## 7. Notas útiles
 
-1. Abrir `http://127.0.0.1:5500/index.html`.
-2. Ingresar datos de la propiedad (sup. total, sup. construida, dormitorios, etc.).
-3. Presionar **“Calcular”**.
-4. Verás:
+* Si el frontend muestra error 500 o CORS, probablemente el backend se cayó.
+  Revisa el log del contenedor:
 
-   * Precio estimado en UF.
-   * Segmento global (K-Means, mercado completo).
-   * Segmento por comuna (ranking de comunas).
-   * Tabla de propiedades similares con link a la ficha original.
+  ```bash
+  docker logs sicop-backend
+  ```
 
----
+* Si realizas cambios en el backend (código de FastAPI), necesitas reconstruir:
 
-## 6. Notas
+  ```bash
+  docker compose up --build
+  ```
 
-* Si algún endpoint devuelve error 500, revisar la consola donde corre `uvicorn`
-  para ver el traceback.
-* Si el navegador muestra errores de CORS, normalmente es porque la API se cayó.
-  Revisar primero que `/health` responda `{"status": "ok"}`.
+* Si se cambia solo HTML/JS del frontend, basta con refrescar la página (Nginx usa volumen).
 
