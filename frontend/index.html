@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>SICOP - Cotizador inteligente de propiedades</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Bootstrap -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+
+  <style>
+    body {
+      background-color: #f5f7fb;
+    }
+    .card {
+      border-radius: 1rem;
+      border: none;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+    }
+    .precio-estimado {
+      font-size: 2.3rem;
+      font-weight: 700;
+      color: #16a34a;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar bg-dark navbar-dark mb-4">
+    <div class="container-fluid">
+      <span class="navbar-brand mb-0 h1">SICOP</span>
+      <span class="navbar-text text-white">
+        Cotizador inteligente de propiedades
+      </span>
+    </div>
+  </nav>
+
+  <div class="container mb-5">
+    <!-- FORMULARIO -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <h5 class="card-title mb-3">Ingresar datos de la propiedad</h5>
+
+        <form id="form-propiedad" class="row g-3">
+          <div class="col-md-2">
+            <label class="form-label">Superficie total (m²)</label>
+            <input
+              type="number"
+              class="form-control"
+              id="sup_total"
+              placeholder="120"
+            />
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Superficie construida (m²)</label>
+            <input
+              type="number"
+              class="form-control"
+              id="sup_construida"
+              placeholder="100"
+            />
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Dormitorios</label>
+            <input
+              type="number"
+              class="form-control"
+              id="dormitorios"
+              placeholder="3"
+            />
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Baños</label>
+            <input
+              type="number"
+              class="form-control"
+              id="banos"
+              placeholder="2"
+            />
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Estacionamientos</label>
+            <input
+              type="number"
+              class="form-control"
+              id="estacionamientos"
+              placeholder="1"
+            />
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Antigüedad (años)</label>
+            <input
+              type="number"
+              class="form-control"
+              id="antiguedad"
+              placeholder="5"
+            />
+          </div>
+
+          <div class="col-md-2">
+            <label class="form-label">Bodegas</label>
+            <input
+              type="number"
+              class="form-control"
+              id="bodegas"
+              placeholder="0"
+            />
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Comuna</label>
+            <input
+              type="text"
+              class="form-control"
+              id="comuna"
+              placeholder="Ej: Maipú"
+            />
+          </div>
+
+          <!-- AMENITIES -->
+          <div class="col-12 mt-2">
+            <div class="form-check form-check-inline">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="terraza"
+              />
+              <label class="form-check-label" for="terraza">Terraza</label>
+            </div>
+
+            <div class="form-check form-check-inline">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="piscina"
+              />
+              <label class="form-check-label" for="piscina">Piscina</label>
+            </div>
+
+            <div class="form-check form-check-inline">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="aire_acondicionado"
+              />
+              <label class="form-check-label" for="aire_acondicionado">
+                Aire acondicionado
+              </label>
+            </div>
+
+            <div class="form-check form-check-inline">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="closets_empotrados"
+              />
+              <label class="form-check-label" for="closets_empotrados">
+                Closets empotrados
+              </label>
+            </div>
+          </div>
+
+          <div class="col-12 d-flex align-items-center mt-2">
+            <button type="submit" class="btn btn-primary me-3">
+              Calcular
+            </button>
+            <span id="estado-api" class="text-success small">
+              Listo ✅
+            </span>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- PRECIO + SEGMENTOS -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-6">
+        <div class="card h-100">
+          <div class="card-body">
+            <h5 class="card-title">Precio estimado</h5>
+            <p id="precio_estimado" class="precio-estimado">-</p>
+            <p class="text-muted small">
+              Precio ajustado combinando modelo y promedio de propiedades
+              similares.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="card h-100">
+          <div class="card-body">
+            <h5 class="card-title">Segmento de mercado</h5>
+            <!-- AQUÍ SE RELLENAN LAS DOS SECCIONES DESDE main.js -->
+            <div id="segmento_box" class="small text-muted">
+              <p><strong>Nombre:</strong> No definido</p>
+              <p><strong>Código segmento:</strong> -</p>
+              <p><strong>N° propiedades en el segmento:</strong> -</p>
+              <p><strong>Precio promedio segmento:</strong> -</p>
+              <p><strong>Superficie promedio:</strong> -</p>
+              <p><strong>Dormitorios promedio:</strong> -</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- EXPLICACIÓN DEL MODELO -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <h5 class="card-title">¿Cómo interpretar estos resultados?</h5>
+
+        <p class="mb-1">
+          <strong>Precio estimado:</strong>
+          se calcula combinando un modelo estadístico entrenado con datos reales
+          y el promedio de propiedades similares en la misma comuna.
+          El modelo aporta la referencia técnica y las propiedades similares
+          ayudan a aterrizar el valor al contexto actual del mercado.
+        </p>
+
+        <p class="mb-1">
+          <strong>Segmento global (K-Means):</strong>
+          agrupa <em>propiedades individuales</em> de todo el mercado según sus características
+          (superficie, dormitorios, baños, antigüedad, amenities, etc.).
+          Es un “segmento técnico” que no depende solo de la comuna, sino de cómo es la propiedad
+          en comparación con el resto.
+        </p>
+
+        <p class="mb-0">
+          <strong>Segmento por comuna:</strong>
+          se basa en un ranking previo de valor UF/m² por comuna.
+          Cada comuna se clasifica en segmentos de negocio (por ejemplo:
+          Económico, Medio-bajo, Medio-alto y Alto), lo que permite entender
+          en qué nivel de valor se encuentra la ubicación de la propiedad.
+        </p>
+      </div>
+    </div>
+
+    <!-- TABLA SIMILARES -->
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Propiedades similares</h5>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Comuna</th>
+                <th>Sup. total</th>
+                <th>Dorms</th>
+                <th>Baños</th>
+                <th>Estac.</th>
+                <th>Precio UF</th>
+                <th>Link</th>
+              </tr>
+            </thead>
+            <tbody id="similares_body">
+              <tr>
+                <td colspan="8">
+                  No se han buscado propiedades aún.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <p class="text-center text-muted mt-4 small">
+      Proyecto DS – SICOP · API local en http://127.0.0.1:8000
+    </p>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
